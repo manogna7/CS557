@@ -1,0 +1,7 @@
+
+ERROR: 0:77: 've4' : undeclared identifier 
+ERROR: 0:78: 've4' : no matching overloaded function found (using implicit conversion) 
+ERROR: 0:78: 've4' : function is not known 
+ERROR: 0:77: 'assign' :  cannot convert from 'const mediump float' to 'FragColor 4-component vector of mediump float'
+
+
