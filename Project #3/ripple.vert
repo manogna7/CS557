@@ -1,26 +1,49 @@
-// make this 120 for the mac:
 #version 330 compatibility
 
-// out variables to be interpolated in the rasterizer and sent to each fragment shader:
+uniform float uA;
+uniform float uB;
+uniform float uC;
+uniform float uD;
+uniform float uLightX;
+uniform float uLightY;
+uniform float uLightZ;
 
-out  vec3  vN;	  // normal vector
-out  vec3  vL;	  // vector from point to light
-out  vec3  vE;	  // vector from point to eye
-out  vec2  vST;	  // (s,t) texture coordinates
+out vec2 vST;
+out vec3 vMC;
+out vec3 vec3Norm;
+out vec3 vec3Light;
+out vec3 vec3Eye;
 
-// where the light is:
+vec4 LIGHTPOS = vec4(uLightX, uLightY, uLightZ, 1.);
 
-const vec3 LightPosition = vec3(  0., 5., 5. );
+#define PI 3.1415926535897932384626433832795
 
-void
-main( )
+void main()
 {
-	vST = gl_MultiTexCoord0.st;
-	vec4 ECposition = gl_ModelViewMatrix * gl_Vertex;
-	vN = normalize( gl_NormalMatrix * gl_Normal );  // normal vector
-	vL = LightPosition - ECposition.xyz;	    // vector from the point
-							// to the light position
-	vE = vec3( 0., 0., 0. ) - ECposition.xyz;       // vector from the point
-							// to the eye position
-	gl_Position = gl_ModelViewProjectionMatrix * gl_Vertex;
+    vec4 P = gl_Vertex;
+    float Y0 = 1.;
+
+    float r = length(P.xy);  // Calculate the radius for circular pattern
+
+    float dzdx = uA * (2. * PI / uB) * cos(2. * PI * r / uB + uC);
+    float dzdy = -uA * sin(2. * PI * r / uB + uC);
+
+    vec3 Tx = vec3(1., 0., dzdx);
+    vec3 Ty = vec3(0., 1., dzdy);
+
+     // Update P.z using circular pattern and decay rate
+    P.z = uA * exp(-uD * r) * sin(2. * PI * r / uB + uC);
+
+
+    vST = gl_MultiTexCoord0.st;
+
+    // Getting the Normal
+    vec4 mixLight = gl_ModelViewMatrix * LIGHTPOS;
+    vec3 tnorm = normalize(gl_NormalMatrix * gl_Normal);
+    vec3 ECposition = (gl_ModelViewMatrix * P).xyz;
+    vec3Norm = normalize(gl_NormalMatrix * normalize(cross(Tx, Ty)));
+    vec3Light = normalize(mixLight.xyz - ECposition);
+    vec3Eye = normalize(vec3(0.0, 0.0, 0.0) - ECposition);
+    gl_Position = gl_ModelViewProjectionMatrix * P;
+    vMC = gl_Position.xyz;
 }

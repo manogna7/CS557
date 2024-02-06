@@ -1,0 +1,25 @@
+##OpenGL GLIB
+
+Perspective 70
+LookAt 0 0 8  0 0 0  0 1 0
+
+Vertex		ripple.vert
+Fragment	ripple.frag
+Program		Ripple										\
+				uA <0. 0. 1.>							\
+				uB <0.1 0.5 2.>							\
+                uC <0. 0. 6.28>                 \
+                uD <0. 0. 2.>                   \
+				uNoiseAmp  <0.0 0. 5.>                  \
+                uNoiseFreq <0.1. 1. 5.>                  \
+                uKa <0. 0.1 1.0>                        \
+                uKd <0. 0.6 1.0>                        \
+                uKs <0. 0.3 1.0>                        \
+                uShininess <1. 10. 100.>                \
+                uLightX <-20. 5. 20.>                   \
+                uLightY <-20. 10. 20.>                  \
+                uLightZ <-20. 20. 20.>                  \
+                uColor {0.1 0.4 0.8 1.}                  \
+                uSpecularColor {1. 1. 1. 1.}
+
+QuadXY  -0.2  1.  128  128

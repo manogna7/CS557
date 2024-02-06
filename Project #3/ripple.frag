@@ -1,56 +1,92 @@
-// make this 120 for the mac:
 #version 330 compatibility
 
-// lighting uniform variables -- these can be set once and left alone:
-uniform float   uKa, uKd, uKs;	 // coefficients of each type of lighting -- make sum to 1.0
-uniform vec3    uColor;		 // object color
-uniform vec3    uSpecularColor;	 // light color
-uniform float   uShininess;	 // specular exponent
+uniform float uKa;
+uniform float uKd;
+uniform float uKs;
 
-// square-equation uniform variables -- these should be set every time Display( ) is called:
+uniform float uA;
+uniform float uB;
+uniform float uC;
+uniform float uD;
 
-uniform float   uS0, uT0, uD;
+uniform float uShininess;
+uniform float uNoiseAmp;
+uniform float uNoiseFreq;
+uniform float uLightX; 
+uniform float uLightY;
+uniform float uLightZ;
 
-// in variables from the vertex shader and interpolated in the rasterizer:
+uniform vec4 uColor;
+uniform sampler3D Noise3;
+uniform vec4 uSpecularColor;
 
-in  vec3  vN;		   // normal vector
-in  vec3  vL;		   // vector from point to light
-in  vec3  vE;		   // vector from point to eye
-in  vec2  vST;		   // (s,t) texture coordinates
+in vec3 vMC;
+in vec2 vST;
+in vec3 vec3Eye;
+in vec3 vec3Norm;
+in vec3 vec3Light;
+
+out 		vec3 vLight;
+out 		vec3 vEye;
+out 		vec3 vNormal;
+
+void perFragLighting(vec4 glVertex) {
+	vec4 vEyePos = gl_ModelViewMatrix * glVertex;
+	vec3 vLightPos = vec3( uLightX, uLightY, uLightZ );
+
+	vLight = vLightPos - vEyePos.xyz; // vector from eye to light pos
+	vEye = vec3( 0., 0., 0. ) - vEyePos.xyz; // vector from the origin to eye
+}
+
+
+vec3
+RotateNormal( float angx, float angy, vec3 n )
+{
+        float cx = cos( angx );
+        float sx = sin( angx );
+        float cy = cos( angy );
+        float sy = sin( angy );
+
+        // rotate about x:
+        float yp =  n.y*cx - n.z*sx;    // y'
+        n.z      =  n.y*sx + n.z*cx;    // z'
+        n.y      =  yp;
+        // n.x      =  n.x;
+
+        // rotate about y:
+        float xp =  n.x*cy + n.z*sy;    // x'
+        n.z      = -n.x*sy + n.z*cy;    // z'
+        n.x      =  xp;
+        // n.y      =  n.y;
+
+        return normalize(n);
+}
 
 
 void
-main( )
+main()
 {
-	float s = vST.s;
-	float t = vST.t;
+	//Bump-Mapping
+	vec4 nvx = texture( Noise3, uNoiseFreq*vMC );
+	float angx = nvx.r + nvx.g + nvx.b + nvx.a  -  2.;	// -1. to +1.
+	angx *= uNoiseAmp;
 
-	// determine the color using the square-boundary equations:
+    vec4 nvy = texture( Noise3, uNoiseFreq*vec3(vMC.xy,vMC.z+0.5) );
+	float angy = nvy.r + nvy.g + nvy.b + nvy.a  -  2.;
+	angy *= uNoiseAmp;
 
-	vec3 myColor = uColor;
-	if( uS0-uD/2. <= s  &&  s <= uS0+uD/2.  &&  uT0-uD/2. <= t  &&  t <= uT0+uD/2. )
-	{
-		myColor = vec3( 1., 0., 0. );;
-	}
+	vec3 tnorm = normalize(RotateNormal(angx,angy,vec3Norm));
 
-	// apply the per-fragmewnt lighting to myColor:
+    vec3 ambient = uKa * uColor.rgb;
+    float d = max(dot(tnorm,vec3Light), 0.);
+    vec3 diffuse = uKd * d * uColor.rgb;
 
-	vec3 Normal = normalize(vN);
-	vec3 Light  = normalize(vL);
-	vec3 Eye    = normalize(vE);
-
-	vec3 ambient = uKa * myColor;
-
-	float dd = max( dot(Normal,Light), 0. );       // only do diffuse if the light can see the point
-	vec3 diffuse = uKd * dd * myColor;
-
-	float ss = 0.;
-	if( dot(Normal,Light) > 0. )	      // only do specular if the light can see the point
-	{
-		vec3 ref = normalize(  reflect( -Light, Normal )  );
-		ss = pow( max( dot(Eye,ref),0. ), uShininess );
-	}
-	vec3 specular = uKs * ss * uSpecularColor;
-	gl_FragColor = vec4( ambient + diffuse + specular,  1. );
+    vec3 specular = uKs * 0.0 * uSpecularColor.rgb;
+    if(dot(tnorm,vec3Light) > 0.){
+        vec3 ref = normalize(2. * tnorm * dot(tnorm,vec3Light) - vec3Light);
+        float t = pow( max( dot(vec3Eye,ref),0. ), uShininess );
+		specular = uKs * t * uSpecularColor.rgb;
+    }
+    gl_FragColor = vec4(ambient.rgb + diffuse.rgb + specular.rgb, 1.);
+	
 }
-
