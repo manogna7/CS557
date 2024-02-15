@@ -1,4 +1,6 @@
 
-ERROR: 0:48: 'vec3' : syntax error syntax error
+ERROR: 0:20: 'len' : undeclared identifier 
+ERROR: 0:20: 'len' : no matching overloaded function found (using implicit conversion) 
+ERROR: 0:20: 'len' : function is not known 
 
 

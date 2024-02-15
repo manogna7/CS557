@@ -11,13 +11,14 @@ Fragment	ripplecube.frag
 Program    	Ripplecube			\
            	uReflectUnit 6             	\
            	uRefractUnit 7             	\
-		    uK < 0.0 0.0 0.1>			\
-		    uP < 0.1 0.5 1.0>			\
+			uA < 0.0 0.0 1.>			\
+			uB < 0.1 0.5 2.0>			\
+			uD <1.>						\
         	uNoiseAmp <0. 0. 5.>		\
         	uNoiseFreq <0.0 0.1 0.5>	\
-		uEta <1. 1.2 4.>		\
-		uMix <0. 1. 1.>			\
-		uWhiteMix <0. 0.3 1.>
+			uEta <1. 1.2 4.>			\
+			uMix <0. 1. 1.>				\
+			uWhiteMix <0. 0.3 1.>
 
 PushMatrix
 Rotate -15   1 0 0
